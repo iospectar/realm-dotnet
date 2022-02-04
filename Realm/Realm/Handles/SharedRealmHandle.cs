@@ -282,7 +282,7 @@ namespace Realms
                 var current = _wrapperHead;
                 while (current != null)
                 {
-                    if (current.Reference.TryGetTarget(out var childHandle) && !childHandle.IsClosed)
+                    if (current.Target is RealmHandle childHandle && !childHandle.IsClosed)
                     {
                         childHandle.Close();
                     }

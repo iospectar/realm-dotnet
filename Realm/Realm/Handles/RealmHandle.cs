@@ -165,17 +165,14 @@ namespace Realms
             }
         }
 
-        public class Wrapper
+        public class Wrapper : WeakReference
         {
             public Wrapper Previous { get; set; }
 
-            public WeakReference<RealmHandle> Reference { get; }
-
             public Wrapper Next { get; set; }
 
-            public Wrapper(RealmHandle handle)
+            public Wrapper(RealmHandle handle) : base(handle)
             {
-                Reference = new(handle);
             }
         }
     }
