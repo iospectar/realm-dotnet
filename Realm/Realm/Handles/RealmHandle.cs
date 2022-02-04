@@ -49,6 +49,8 @@ namespace Realms
 {
     internal abstract class RealmHandle : SafeHandle
     {
+        public Wrapper WrapperNode { get; }
+
         // Every handle can potentially have an unbind list
         // If the unbind list is instantiated, this handle is a handle for a root object
         // and the unbind list will get filled with handles from finalizer threads
@@ -88,8 +90,6 @@ namespace Realms
         /// </summary>
         public abstract void Unbind();
 
-        public virtual bool ForceRootOwnership => false;
-
         public override bool IsInvalid => handle == IntPtr.Zero;
 
         /// <summary>
@@ -109,7 +109,8 @@ namespace Realms
 
             // if we are a root object, we need a list for our children and Root is already null
             Root = root;
-            root?.AddChild(this);
+            WrapperNode = new(this);
+            root?.AddChild(WrapperNode);
         }
 
         // called automatically but only once from criticalhandle when this handle is disposing or finalizing
@@ -161,6 +162,20 @@ namespace Realms
             if (Root?.IsClosed == true || IsClosed)
             {
                 throw new RealmClosedException("This object belongs to a closed realm.");
+            }
+        }
+
+        public class Wrapper
+        {
+            public Wrapper Previous { get; set; }
+
+            public WeakReference<RealmHandle> Reference { get; }
+
+            public Wrapper Next { get; set; }
+
+            public Wrapper(RealmHandle handle)
+            {
+                Reference = new(handle);
             }
         }
     }

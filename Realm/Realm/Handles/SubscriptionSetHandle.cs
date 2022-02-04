@@ -107,8 +107,6 @@ namespace Realms.Sync
 
         private delegate void GetSubscriptionBase(IntPtr callback, out NativeException ex);
 
-        public override bool ForceRootOwnership => true;
-
         public static void Initialize()
         {
             NativeMethods.GetSubscriptionCallback getSubscription = OnGetSubscription;

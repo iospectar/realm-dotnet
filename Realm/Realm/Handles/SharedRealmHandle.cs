@@ -34,12 +34,12 @@ namespace Realms
 {
     internal class SharedRealmHandle : StandaloneHandle
     {
-        protected readonly List<WeakReference<RealmHandle>> _weakChildren = new();
-
         private readonly object _unbindListLock = new(); // used to serialize calls to unbind between finalizer threads
 
         // list of owned handles that should be unbound as soon as possible by a user thread
         private readonly List<RealmHandle> _unbindList = new();
+
+        private RealmHandle.Wrapper _wrapperHead;
 
         // goes to true when we don't expect more calls from user threads on this handle
         // is set when we dispose a handle
@@ -279,12 +279,15 @@ namespace Realms
                     UnbindLockedList();
                 }
 
-                foreach (var child in _weakChildren)
+                var current = _wrapperHead;
+                while (current != null)
                 {
-                    if (child.TryGetTarget(out var childHandle) && !childHandle.IsClosed)
+                    if (current.Reference.TryGetTarget(out var childHandle) && !childHandle.IsClosed)
                     {
                         childHandle.Close();
                     }
+
+                    current = current.Next;
                 }
 
                 return true;
@@ -330,12 +333,15 @@ namespace Realms
             }
         }
 
-        public virtual void AddChild(RealmHandle handle)
+        public virtual void AddChild(RealmHandle.Wrapper wrapper)
         {
-            if (handle.ForceRootOwnership)
+            if (_wrapperHead != null)
             {
-                _weakChildren.Add(new(handle));
+                _wrapperHead.Previous = wrapper;
+                wrapper.Next = _wrapperHead;
             }
+
+            _wrapperHead = wrapper;
 
             if (_unbindList.Count == 0)
             {
@@ -363,6 +369,21 @@ namespace Realms
                 foreach (var realmHandle in _unbindList)
                 {
                     realmHandle.Unbind();
+
+                    if (realmHandle.WrapperNode.Previous == null)
+                    {
+                        // We were the head
+                        _wrapperHead = realmHandle.WrapperNode.Next;
+                        if (_wrapperHead != null)
+                        {
+                            _wrapperHead.Previous = null;
+                        }
+                    }
+                    else
+                    {
+                        // Remove the unbound handle from the linked list.
+                        realmHandle.WrapperNode.Previous.Next = realmHandle.WrapperNode.Next;
+                    }
                 }
 
                 _unbindList.Clear();

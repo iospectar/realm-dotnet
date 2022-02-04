@@ -48,12 +48,24 @@ namespace PerformanceTests
         }
 
         [Benchmark(Description = "Time to iterate a collection of %ObjectCount% objects")]
-        public void Itearation()
+        public void SimpleIteration()
         {
             foreach (var value in _realm.All<ObjectWithList>())
             {
                 _ = value;
             }
+        }
+
+        [Benchmark(Description = "Time to iterate a collection of %ObjectCount% objects and then dispose of the parent realm")]
+        public void Disposal()
+        {
+            foreach (var value in _realm.All<ObjectWithList>())
+            {
+                _ = value;
+            }
+
+            _realm.Dispose();
+            _realm = Realm.GetInstance(_realm.Config.DatabasePath);
         }
 
         private class ObjectWithList : RealmObject
