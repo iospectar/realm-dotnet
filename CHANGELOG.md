@@ -16,6 +16,35 @@
     }
   }
   ```
+* Added property `Session.ConnectionState` to get a `Session`'s `SessionConnectionState`. Additionally, `Session.SubscribeForConnectionStateChanges` now allows to listen for changes in the `Session.ConnectionState`.
+This method returns a token which must be kept alive until changes in the `Session.ConnectionState` are of interest.
+
+  A minimal example would look like this:
+  ```csharp
+  var config = new PartitionSyncConfiguration(partition, user, optionalPath);
+  var realm = Realm.GetInstance(config);
+  var token = realm.SyncSession.SubscribeForConnectionStateChanges((oldState, newState) =>
+  {
+    if (newState == SessionConnectionState.Disconnected)
+    {
+      // user's code
+    }
+    else if (newState == SessionConnectionState.Connected)
+    {
+      // user's code
+    }
+
+    if (oldState == SessionConnectionState.Connecting)
+    {
+      // user's code
+    }
+
+    // etc...
+  });
+
+  // once done, don't forget
+  token.Dispose();
+  ```
 
 ### Fixed
 * Fixed an issue with xUnit tests that would cause `System.Runtime.InteropServices.SEHException` to be thrown whenever Realm was accessed in a non-async test. (Issue [#1865](https://github.com/realm/realm-dotnet/issues/1865))
