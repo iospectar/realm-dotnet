@@ -480,6 +480,7 @@ jobs:
         - Win32
         - x64
         - ARM
+        - ARM64
     timeout-minutes: 90
     needs:
     - check-wrappers-cache
