@@ -15,7 +15,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Debug',
 
-    [ValidateSet('Win32', 'x64', 'ARM')]
+    [ValidateSet('Win32', 'x64', 'ARM', 'ARM64')]
     [string[]]$Platforms = ('Win32'),
 
     [ValidateSet('Windows', 'WindowsStore')]
