@@ -3,6 +3,7 @@ name: main
   push:
     branches:
     - main
+    - test/arm64
   pull_request: null
 env:
   REALM_DISABLE_ANALYTICS: true
